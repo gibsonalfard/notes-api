@@ -9,6 +9,12 @@ class NotesHandler {
     this.deleteNoteByIdHandler = this.deleteNoteByIdHandler.bind(this);
   }
 
+  /**
+   * Handler to save note
+   * @param {object} request 
+   * @param {object} h 
+   * @returns {object}
+   */
   postNoteHandler(request, h) {
     try {
       const { title = 'untitled', tags, body } = request.payload;
@@ -33,6 +39,12 @@ class NotesHandler {
     }
   }
 
+  /**
+   * Handler to get all note that already recorded
+   * @param {object} request 
+   * @param {object} h 
+   * @returns {object}
+   */
   getNotesHandler(request, h) {
     const notes = this.service.getNotes();
     const response = h.response({
@@ -47,6 +59,12 @@ class NotesHandler {
     return response;
   }
 
+  /**
+   * Handler to get one note by id
+   * @param {object} request 
+   * @param {object} h 
+   * @returns {object}
+   */
   getNoteByIdHandler(request, h) {
     try {
       const { id } = request.params;
@@ -72,6 +90,12 @@ class NotesHandler {
     }
   }
 
+  /**
+   * Handler to update note record
+   * @param {object} request 
+   * @param {object} h 
+   * @returns {object}
+   */
   putNoteByIdHandler(request, h) {
     try {
       const { id } = request.params;
@@ -93,6 +117,12 @@ class NotesHandler {
     }
   }
 
+  /**
+   * Handler to delete one note by id
+   * @param {object} request 
+   * @param {object} h 
+   * @returns {object}
+   */
   deleteNoteByIdHandler(request, h) {
     try {
       const { id } = request.params;
