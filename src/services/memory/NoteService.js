@@ -5,6 +5,14 @@ class NoteService {
     this.notes = [];
   }
 
+  /**
+   * Add note to saved array
+   * @param {object} props
+   * @param {string} props.title
+   * @param {string} props.body
+   * @param {string[]} props.tags
+   * @returns {string}
+   */
   addNotes({ title, body, tags }) {
     const id = nanoid(16);
     const createdAt = new Date().toISOString();
@@ -25,10 +33,19 @@ class NoteService {
     return id;
   }
 
+  /**
+   * Get all note record
+   * @returns {object[]}
+   */
   getNotes() {
     return this.notes;
   }
 
+  /**
+   * Get note by id
+   * @param {string} id
+   * @returns {object}
+   */
   getNoteById(id) {
     const note = this.notes.filter((n) => n.id === id)[0];
 
@@ -39,6 +56,15 @@ class NoteService {
     return note;
   }
 
+  /**
+   * Update note record by id
+   * @param {string} id
+   * @param {object} props
+   * @param {string} props.title
+   * @param {string} props.body
+   * @param {string[]} props.tags
+   * @returns {void}
+   */
   updateNoteById(id, props) {
     const { title, tags, body } = props;
 
@@ -58,6 +84,11 @@ class NoteService {
     };
   }
 
+  /**
+   * delete note record using
+   * @param {string} id
+   * @returns {void}
+   */
   deleteNoteById(id) {
     const index = this.notes.findIndex((note) => note.id === id);
 
