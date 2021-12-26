@@ -6,4 +6,8 @@ const NotePayload = joi.object({
   tags: joi.array().items(joi.string()).required(),
 });
 
-module.exports = { NotePayload };
+const NoteIdParam = joi.object({
+  id: joi.string().length(16).required(),
+});
+
+module.exports = { NotePayload, NoteIdParam };

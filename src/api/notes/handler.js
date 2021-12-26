@@ -1,4 +1,4 @@
-const { ClientError, NotFoundError } = require('../../exceptions');
+const { ClientError } = require('../../exceptions');
 
 class NotesHandler {
   constructor(service, validator) {
@@ -80,7 +80,7 @@ class NotesHandler {
    */
   getNoteByIdHandler(request, h) {
     try {
-      const { id } = request.params;
+      const { id } = this.validator.validateNoteParams(request.params);
 
       const note = this.service.getNoteById(id);
 
@@ -94,7 +94,7 @@ class NotesHandler {
       response.code(200);
       return response;
     } catch (error) {
-      if (error instanceof NotFoundError) {
+      if (error instanceof ClientError) {
         const response = h.response({
           status: 'fail',
           message: error.message,
@@ -121,7 +121,7 @@ class NotesHandler {
    */
   putNoteByIdHandler(request, h) {
     try {
-      const { id } = request.params;
+      const { id } = this.validator.validateNoteParams(request.params);
       const { title, tags, body } = this.validator.validateNotePayload(request.payload);
       this.service.updateNoteById(id, { title, tags, body });
 
@@ -132,7 +132,7 @@ class NotesHandler {
       response.code(200);
       return response;
     } catch (error) {
-      if (error instanceof NotFoundError || error instanceof ClientError) {
+      if (error instanceof ClientError) {
         const response = h.response({
           status: 'fail',
           message: error.message,
@@ -159,7 +159,7 @@ class NotesHandler {
    */
   deleteNoteByIdHandler(request, h) {
     try {
-      const { id } = request.params;
+      const { id } = this.validator.validateNoteParams(request.params);
       this.service.deleteNoteById(id);
 
       const response = h.response({
@@ -168,7 +168,7 @@ class NotesHandler {
       });
       return response;
     } catch (error) {
-      if (error instanceof NotFoundError) {
+      if (error instanceof ClientError) {
         const response = h.response({
           status: 'fail',
           message: error.message,
