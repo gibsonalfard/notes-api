@@ -18,10 +18,10 @@ class NotesHandler {
    * @param {object} h
    * @returns {object}
    */
-  postNoteHandler(request, h) {
+  async postNoteHandler(request, h) {
     try {
       const { title = 'untitled', tags, body } = this.validator.validateNotePayload(request.payload);
-      const noteId = this.service.addNotes({ title, body, tags });
+      const noteId = await this.service.addNotes({ title, body, tags });
 
       const response = h.response({
         status: 'success',
@@ -58,8 +58,8 @@ class NotesHandler {
    * @param {object} h
    * @returns {object}
    */
-  getNotesHandler(request, h) {
-    const notes = this.service.getNotes();
+  async getNotesHandler(request, h) {
+    const notes = await this.service.getNotes();
     const response = h.response({
       status: 'success',
       message: 'Catatan berhasil diambil',
@@ -78,11 +78,11 @@ class NotesHandler {
    * @param {object} h
    * @returns {object}
    */
-  getNoteByIdHandler(request, h) {
+  async getNoteByIdHandler(request, h) {
     try {
       const { id } = this.validator.validateNoteParams(request.params);
 
-      const note = this.service.getNoteById(id);
+      const note = await this.service.getNoteById(id);
 
       const response = h.response({
         status: 'success',
@@ -119,11 +119,11 @@ class NotesHandler {
    * @param {object} h
    * @returns {object}
    */
-  putNoteByIdHandler(request, h) {
+  async putNoteByIdHandler(request, h) {
     try {
       const { id } = this.validator.validateNoteParams(request.params);
       const { title, tags, body } = this.validator.validateNotePayload(request.payload);
-      this.service.updateNoteById(id, { title, tags, body });
+      await this.service.updateNoteById(id, { title, tags, body });
 
       const response = h.response({
         status: 'success',
@@ -157,10 +157,10 @@ class NotesHandler {
    * @param {object} h
    * @returns {object}
    */
-  deleteNoteByIdHandler(request, h) {
+  async deleteNoteByIdHandler(request, h) {
     try {
       const { id } = this.validator.validateNoteParams(request.params);
-      this.service.deleteNoteById(id);
+      await this.service.deleteNoteById(id);
 
       const response = h.response({
         status: 'success',
