@@ -9,6 +9,11 @@ class User {
     this.pool = new Pool();
   }
 
+  /**
+   * Add user with given payload
+   * @param {object} props
+   * @returns {Promise<string>}
+   */
   async addUsers(props) {
     const { username, password, fullname } = props;
 
@@ -31,6 +36,11 @@ class User {
     return user.rows[0].id;
   }
 
+  /**
+   * Verify if user with specific username already exists
+   * @param {string} username
+   * @returns {Promise<void>}
+   */
   async verifyExists(username) {
     const query = {
       text: 'SELECT * FROM users WHERE username=$1',
@@ -44,6 +54,11 @@ class User {
     }
   }
 
+  /**
+   * Get user using specific userId
+   * @param {string} id
+   * @returns {Promise<object>}
+   */
   async getOneById(id) {
     const query = {
       text: 'SELECT * FROM users WHERE id = $1',

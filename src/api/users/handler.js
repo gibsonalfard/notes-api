@@ -29,7 +29,7 @@ class UsersHandler {
   }
 
   /**
-   * Handler to get one note by id
+   * Handler to get one user by id
    * @param {object} request
    * @param {object} h
    * @returns {object}
