@@ -93,7 +93,7 @@ class User {
     }
 
     const { id, password: hashedPassword } = new Users(user.rows[0]);
-    const match = bcrypt.compare(password, hashedPassword);
+    const match = await bcrypt.compare(password, hashedPassword);
 
     if (!match) {
       throw new AuthenticationError('AUTHENTICATION_FAILED');

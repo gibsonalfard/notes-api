@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-const { NotFoundError } = require('../../exceptions');
+const { InvariantError } = require('../../exceptions');
 
 class Authentications {
   constructor() {
@@ -24,7 +24,7 @@ class Authentications {
     const refreshToken = await this.pool.query(query);
 
     if (!refreshToken.rows.length) {
-      throw new NotFoundError('INVALID_REFRESH_TOKEN');
+      throw new InvariantError('INVALID_REFRESH_TOKEN');
     }
   }
 

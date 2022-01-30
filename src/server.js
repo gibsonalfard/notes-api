@@ -1,7 +1,8 @@
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
-const { ClientError } = require('./exceptions');
+const Jwt = require('@hapi/jwt');
+const { ClientError, AuthenticationError } = require('./exceptions');
 
 const notes = require('./api/notes');
 const Note = require('./services/postgres/Note');
@@ -11,9 +12,16 @@ const users = require('./api/users');
 const User = require('./services/postgres/User');
 const UsersValidator = require('./validator/users');
 
+const authentications = require('./api/authentications');
+const Authentication = require('./services/postgres/Authentication');
+const TokenManager = require('./tokenize/TokenManager');
+const AuthenticationValidator = require('./validator/authentications');
+
 const init = async () => {
   const noteService = new Note();
   const userService = new User();
+  const authenticationsService = new Authentication();
+
   const server = Hapi.server({
     port: process.env.PORT,
     host: process.env.HOST,
@@ -22,6 +30,28 @@ const init = async () => {
         origin: ['*'],
       },
     },
+  });
+
+  await server.register([
+    {
+      plugin: Jwt,
+    },
+  ]);
+
+  server.auth.strategy('notesapp_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacs) => ({
+      isValid: true,
+      credentials: {
+        id: artifacs.decoded.payload.id,
+      },
+    }),
   });
 
   await server.register([{
@@ -37,12 +67,28 @@ const init = async () => {
       service: userService,
       validator: UsersValidator,
     },
+  },
+  {
+    plugin: authentications,
+    options: {
+      authenticationsService,
+      usersService: userService,
+      tokenManager: TokenManager,
+      validator: AuthenticationValidator,
+    },
   }]);
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
 
     if (response instanceof ClientError) {
+      const newResponse = h.response({
+        status: 'fail',
+        message: response.message,
+      });
+      newResponse.code(response.statusCode);
+      return newResponse;
+    } if (response instanceof AuthenticationError) {
       const newResponse = h.response({
         status: 'fail',
         message: response.message,
