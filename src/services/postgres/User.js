@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const bcrypt = require('bcrypt');
-const { InvariantError, NotFoundError } = require('../../exceptions');
+const { InvariantError, NotFoundError, AuthenticationError } = require('../../exceptions');
 const { Users } = require('../../models');
 
 class User {
@@ -72,6 +72,34 @@ class User {
     }
 
     return new Users(result.rows[0]);
+  }
+
+  /**
+   * Authenticate user using username and password
+   * @param {string} username
+   * @param {string} password
+   * @returns {Promise<string>}
+   */
+  async verify(username, password) {
+    const query = {
+      text: 'SELECT * FROM users WHERE username=$1',
+      values: [username],
+    };
+
+    const user = await this.pool.query(query);
+
+    if (!user.rows.length) {
+      throw new AuthenticationError('AUTHENTICATION_FAILED');
+    }
+
+    const { id, password: hashedPassword } = new Users(user.rows[0]);
+    const match = await bcrypt.compare(password, hashedPassword);
+
+    if (!match) {
+      throw new AuthenticationError('AUTHENTICATION_FAILED');
+    }
+
+    return id;
   }
 }
 
