@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
-const { InvariantError, NotFoundError } = require('../../exceptions');
+const { InvariantError, NotFoundError, AuthorizationError } = require('../../exceptions');
 const { Notes } = require('../../models');
 
 class Note {
@@ -17,12 +17,14 @@ class Note {
      * @returns {Promise<string>}
      */
   async addNotes(props) {
-    const { title, body, tags } = props;
+    const {
+      title, body, tags, owner,
+    } = props;
 
     const id = nanoid(16);
     const query = {
-      text: 'INSERT INTO notes (id, title, body, tags) VALUES($1, $2, $3, $4) RETURNING id',
-      values: [id, title, body, tags],
+      text: 'INSERT INTO notes (id, title, body, tags, owner) VALUES($1, $2, $3, $4, $5) RETURNING id',
+      values: [id, title, body, tags, owner],
     };
 
     const result = await this.pool.query(query);
@@ -38,8 +40,11 @@ class Note {
      * Get all notes in databases;
      * @returns {Promise<object[]>}
      */
-  async getNotes() {
-    const query = 'SELECT * FROM notes';
+  async getNotes(owner) {
+    const query = {
+      text: 'SELECT * FROM notes WHERE owner = $1',
+      values: [owner],
+    };
     const result = await this.pool.query(query);
 
     return result.rows.map((row) => new Notes(row));
@@ -104,6 +109,31 @@ class Note {
 
     if (!result.rows.length) {
       throw new NotFoundError('NOTE_NOT_EXISTS');
+    }
+  }
+
+  /**
+   * Check if user is owner of note
+   * @param {string} id
+   * @param {string} owner
+   * @returns {Promise<void>}
+   */
+  async verifyNoteOwner(id, owner) {
+    const query = {
+      text: 'SELECT * FROM notes WHERE id = $1',
+      values: [id],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('NOTE_NOT_EXISTS');
+    }
+
+    const note = result.rows[0];
+
+    if (note.owner !== owner) {
+      throw new AuthorizationError('FORBIDDEN');
     }
   }
 }
