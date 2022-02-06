@@ -55,8 +55,9 @@ class CollaborationsService {
        * @param {Object} props
        * @return {Promise<void>}
        */
-  async vertify(props) {
+  async verify(props) {
     const { noteId, userId } = props;
+    console.log({ noteId, userId });
 
     const query = {
       text: 'SELECT * FROM collaborations WHERE note_id = $1 AND user_id = $2',

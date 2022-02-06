@@ -146,7 +146,7 @@ class Note {
         throw error;
       }
       try {
-        await this.collaborationService.verifyCollaborator(noteId, userId);
+        await this.collaborationService.verify({ noteId, userId });
       } catch {
         throw error;
       }
