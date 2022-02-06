@@ -4,8 +4,9 @@ const { InvariantError, NotFoundError, AuthorizationError } = require('../../exc
 const { Notes } = require('../../models');
 
 class Note {
-  constructor() {
+  constructor(collaborationService) {
     this.pool = new Pool();
+    this.collaborationService = collaborationService;
   }
 
   /**
@@ -134,6 +135,21 @@ class Note {
 
     if (note.owner !== owner) {
       throw new AuthorizationError('FORBIDDEN');
+    }
+  }
+
+  async verifyNoteAccess(noteId, userId) {
+    try {
+      await this.verifyNoteOwner(noteId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this.collaborationService.verifyCollaborator(noteId, userId);
+      } catch {
+        throw error;
+      }
     }
   }
 }
