@@ -10,4 +10,8 @@ const IdParam = joi.object({
   id: joi.string().length(21).required(),
 });
 
-module.exports = { CreatePayload, IdParam };
+const indexQuery = joi.object({
+  username: joi.string().default(''),
+});
+
+module.exports = { CreatePayload, IdParam, indexQuery };

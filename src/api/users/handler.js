@@ -5,6 +5,7 @@ class UsersHandler {
 
     this.createHandler = this.createHandler.bind(this);
     this.getOneByIdHandler = this.getOneByIdHandler.bind(this);
+    this.getOneByUsernameHandler = this.getOneByUsernameHandler.bind(this);
   }
 
   /**
@@ -44,6 +45,22 @@ class UsersHandler {
       message: 'USER_FOUND',
       data: {
         user,
+      },
+    });
+    response.code(200);
+    return response;
+  }
+
+  async getOneByUsernameHandler(request, h) {
+    const { username } = this.validator.validateQuery(request.query);
+
+    const users = await this.service.getUserByUsername(username);
+
+    const response = h.response({
+      status: 'success',
+      message: 'USER_FOUND',
+      data: {
+        users,
       },
     });
     response.code(200);
