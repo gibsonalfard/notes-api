@@ -102,6 +102,7 @@ const init = async () => {
         noteService,
         validator: CollaborationsValidator,
       }
+    }
   ]);
 
   server.ext('onPreResponse', (request, h) => {
