@@ -4,8 +4,9 @@ const { InvariantError, NotFoundError, AuthorizationError } = require('../../exc
 const { Notes } = require('../../models');
 
 class Note {
-  constructor() {
+  constructor(collaborationService) {
     this.pool = new Pool();
+    this.collaborationService = collaborationService;
   }
 
   /**
@@ -42,7 +43,10 @@ class Note {
      */
   async getNotes(owner) {
     const query = {
-      text: 'SELECT * FROM notes WHERE owner = $1',
+      text: `SELECT n.* FROM notes n
+        LEFT JOIN collaborations c ON (n.id=c.note_id) 
+        WHERE n.owner = $1 OR c.user_id = $1
+        GROUP BY n.id`,
       values: [owner],
     };
     const result = await this.pool.query(query);
@@ -57,7 +61,10 @@ class Note {
      */
   async getNoteById(id) {
     const query = {
-      text: 'SELECT * FROM notes WHERE id = $1',
+      text: `SELECT n.*, u.username 
+        FROM notes n
+        LEFT JOIN users u ON (u.id=n.owner)
+        WHERE n.id = $1`,
       values: [id],
     };
 
@@ -134,6 +141,21 @@ class Note {
 
     if (note.owner !== owner) {
       throw new AuthorizationError('FORBIDDEN');
+    }
+  }
+
+  async verifyNoteAccess(noteId, userId) {
+    try {
+      await this.verifyNoteOwner(noteId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this.collaborationService.verify({ noteId, userId });
+      } catch {
+        throw error;
+      }
     }
   }
 }

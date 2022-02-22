@@ -101,6 +101,21 @@ class User {
 
     return id;
   }
+
+  async getUserByUsername(username) {
+    const query = {
+      text: 'SELECT * FROM users WHERE username LIKE $1',
+      values: [`%${username}%`],
+    };
+
+    const result = await this.pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('USER_NOT_FOUND');
+    }
+
+    return result.rows.map((user) => new Users(user));
+  }
 }
 
 module.exports = User;
