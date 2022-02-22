@@ -21,6 +21,11 @@ const collaborations = require('./api/collaborations');
 const Collaboration = require('./services/postgres/Collaborations');
 const CollaborationsValidator = require('./validator/collaborations');
 
+// Exports
+const exportsHandler = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/Producer');
+const ExportsValidator = require('./validator/exports');
+
 const init = async () => {
   const collaborationsService = new Collaboration();
   const noteService = new Note(collaborationsService);
@@ -59,36 +64,45 @@ const init = async () => {
     }),
   });
 
-  await server.register([{
-    plugin: notes,
-    options: {
-      service: noteService,
-      validator: NotesValidator,
+  await server.register([
+    {
+      plugin: notes,
+      options: {
+        service: noteService,
+        validator: NotesValidator,
+      },
     },
-  },
-  {
-    plugin: users,
-    options: {
-      service: userService,
-      validator: UsersValidator,
+    {
+      plugin: users,
+      options: {
+        service: userService,
+        validator: UsersValidator,
+      },
     },
-  },
-  {
-    plugin: authentications,
-    options: {
-      authenticationsService,
-      usersService: userService,
-      tokenManager: TokenManager,
-      validator: AuthenticationValidator,
+    {
+      plugin: authentications,
+      options: {
+        authenticationsService,
+        usersService: userService,
+        tokenManager: TokenManager,
+        validator: AuthenticationValidator,
+      },
     },
-  }, {
-    plugin: collaborations,
-    options: {
-      service: collaborationsService,
-      noteService,
-      validator: CollaborationsValidator,
+    {
+      plugin: exportsHandler,
+      options: {
+        service: ProducerService,
+        validator: ExportsValidator,
+      },
     },
-  }]);
+    {
+      plugin: collaborations,
+      options: {
+        service: collaborationsService,
+        noteService,
+        validator: CollaborationsValidator,
+      }
+  ]);
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
