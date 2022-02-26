@@ -106,3 +106,5 @@ dist
 
 # All SSH .pem for server
 *.pem
+
+src/api/uploads/file
