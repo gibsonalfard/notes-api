@@ -37,7 +37,6 @@ class CollaborationsHandler {
       status: 'success',
       message: 'Kolaborasi berhasil dihapus',
     });
-    response.code(201);
     return response;
   }
 }

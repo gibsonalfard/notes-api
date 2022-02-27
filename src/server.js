@@ -24,20 +24,24 @@ const CollaborationsValidator = require('./validator/collaborations');
 
 // Exports
 const exportsHandler = require('./api/exports');
-const ProducerService = require('./services/rabbitmq/Producer');
+const Producer = require('./services/rabbitmq/Producer');
 const ExportsValidator = require('./validator/exports');
 
 // Uploads
 const uploads = require('./api/uploads');
-const StorageService = require('./services/s3/Storage');
+const Storage = require('./services/s3/Storage');
 const UploadsValidator = require('./validator/uploads');
 
+// Cache
+const Cache = require('./services/redis/Cache');
+
 const init = async () => {
-  const collaborationsService = new Collaboration();
-  const noteService = new Note(collaborationsService);
+  const cacheService = new Cache();
+  const collaborationsService = new Collaboration(cacheService);
+  const noteService = new Note(collaborationsService, cacheService);
   const userService = new User();
   const authenticationsService = new Authentication();
-  const storageService = new StorageService();
+  const storageService = new Storage();
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -101,7 +105,7 @@ const init = async () => {
     {
       plugin: exportsHandler,
       options: {
-        service: ProducerService,
+        service: Producer,
         validator: ExportsValidator,
       },
     },
