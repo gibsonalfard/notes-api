@@ -3,8 +3,9 @@ const { nanoid } = require('nanoid');
 const { InvariantError } = require('../../exceptions');
 
 class CollaborationsService {
-  constructor() {
+  constructor(cacheService) {
     this.pool = new Pool();
+    this.cacheService = cacheService;
   }
 
   /**
@@ -26,6 +27,7 @@ class CollaborationsService {
     if (!result.rows.length) {
       throw new InvariantError('Kolaborasi gagal ditambahkan');
     }
+    await this.cacheService.delete(`notes:${userId}`);
 
     return result.rows[0].id;
   }
@@ -48,6 +50,8 @@ class CollaborationsService {
     if (!result.rows.length) {
       throw new InvariantError('Kolaborasi gagal dihapus');
     }
+
+    await this.cacheService.delete(`notes:${userId}`);
   }
 
   /**
@@ -57,7 +61,6 @@ class CollaborationsService {
        */
   async verify(props) {
     const { noteId, userId } = props;
-    console.log({ noteId, userId });
 
     const query = {
       text: 'SELECT * FROM collaborations WHERE note_id = $1 AND user_id = $2',

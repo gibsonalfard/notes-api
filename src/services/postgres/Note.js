@@ -4,9 +4,10 @@ const { InvariantError, NotFoundError, AuthorizationError } = require('../../exc
 const { Notes } = require('../../models');
 
 class Note {
-  constructor(collaborationService) {
+  constructor(collaborationService, cacheService) {
     this.pool = new Pool();
     this.collaborationService = collaborationService;
+    this.cacheService = cacheService;
   }
 
   /**
@@ -34,6 +35,7 @@ class Note {
       throw new InvariantError('ERROR_WHILE_ADD_NOTE');
     }
 
+    await this.cacheService.delete(`notes:${owner}`);
     return result.rows[0].id;
   }
 
@@ -42,6 +44,12 @@ class Note {
      * @returns {Promise<object[]>}
      */
   async getNotes(owner) {
+    // Get from Cache
+    const inCache = await this.cacheService.get(`notes:${owner}`);
+    if (inCache) {
+      return JSON.parse(inCache);
+    }
+
     const query = {
       text: `SELECT n.* FROM notes n
         LEFT JOIN collaborations c ON (n.id=c.note_id) 
@@ -50,8 +58,12 @@ class Note {
       values: [owner],
     };
     const result = await this.pool.query(query);
+    const mappedResult = result.rows.map((row) => new Notes(row));
 
-    return result.rows.map((row) => new Notes(row));
+    // Store in Cache
+    await this.cacheService.set(`notes:${owner}`, JSON.stringify(mappedResult));
+
+    return mappedResult;
   }
 
   /**
@@ -99,6 +111,9 @@ class Note {
     if (!result.rows.length) {
       throw new NotFoundError('NOTE_NOT_EXISTS');
     }
+
+    const { owner } = result.rows[0];
+    await this.cacheService.delete(`notes:${owner}`);
   }
 
   /**
@@ -117,6 +132,9 @@ class Note {
     if (!result.rows.length) {
       throw new NotFoundError('NOTE_NOT_EXISTS');
     }
+
+    const { owner } = result.rows[0];
+    await this.cacheService.delete(`notes:${owner}`);
   }
 
   /**
